@@ -44,13 +44,11 @@ Si deseas registrarte con una cuenta nueva, puedes hacerlo mediante la siguiente
 
 api/auth/register/
 
-Cuando desees cerrar sesión, solo necesitas enviar una petición POST a:
+Cuando desees cerrar sesión, solo necesitas enviar una petición POST a: api/auth/logout/ o quitar tu tokenm del encabezado Authorization
 
-api/auth/logout/
 
-o quitar tu tokenm del encabezado Authorization
 
-en el endopoint de /api/urls/bulk-upload/ podras subir multiples URL para acortar y puede elegir si como respuiesta de esa soolicitud un json o file, si es json ahi mismo te dan las rul acortadas, pero si es file, puedes dercagr el archivo.
+En el endopoint de /api/urls/bulk-upload/ podras subir multiples URL para acortar y puede elegir si como respuesta de esa soolicitud un json o file, si es json ahi mismo te dan las URL acortadas, pero si es file, puedes dercagr el archivo.
 
 es decir:
 
