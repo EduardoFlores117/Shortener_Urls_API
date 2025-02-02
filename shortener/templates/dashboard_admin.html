@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Admin Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-900 text-white font-sans">
+    <div class="container mx-auto p-6 relative">
+        <!-- Barra superior -->
+        <div class="flex justify-between items-center mb-6">
+            <h1 class="text-3xl font-bold text-blue-400">Admin Dashboard</h1>
+
+            <!-- Sección del usuario -->
+            <div class="flex items-center space-x-4">
+                <!-- Icono de perfil y correo -->
+                <div class="flex items-center space-x-2">
+                    <span class="bg-gray-700 p-2 rounded-full text-white">👤</span>
+                    <span class="text-white">{{ request.user.email }}</span>
+                </div>
+
+                <!-- Botón de Cerrar Sesión -->
+                <a href="/auth/logout/" class="px-4 py-2 bg-red-500 rounded-lg text-white hover:bg-red-700">
+                    Cerrar Sesión
+                </a>
+            </div>
+        </div>
+
+        <div class="mt-4 p-4 bg-gray-800 rounded-lg shadow-md">
+            <table class="w-full border-collapse rounded-lg overflow-hidden">
+                <thead>
+                    <tr class="bg-gray-700 text-white text-left">
+                        <th class="p-3">Usuario</th>
+                        <th class="p-3">ID</th>
+                        <th class="p-3">URL Original</th>
+                        <th class="p-3">URL Acortada</th>
+                        <th class="p-3">Visitas</th>
+                        <th class="p-3">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="urls-table">
+                    {% for user, urls in page_obj %}
+                        {% for url in urls %}
+                        <tr class="border-b border-gray-600 hover:bg-gray-700" id="url-row-{{ url.id }}">
+                            {% if forloop.first %}
+                            <td class="p-3" rowspan="{{ urls|length }}">{{ user.username }}</td>
+                            {% endif %}
+                            <td class="p-3">{{ url.id }}</td>
+                            <td class="p-3 truncate max-w-xs">{{ url.original_url }}</td>
+                            <td class="p-3">
+                                <a href="{{ url.get_short_url }}" target="_blank" class="text-blue-400 hover:underline">{{ url.get_short_url }}</a>
+                            </td>
+                            <td class="p-3">{{ url.views }}</td>
+                            <td class="p-3 flex space-x-2">
+                                <button onclick="copyToClipboard('{{ url.get_short_url }}')" class="text-gray-300 hover:text-white">📋</button>
+                                <button onclick="confirmDeleteUrl({{ url.id }})" class="text-red-500 hover:text-red-700">🗑️</button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Paginación centrada con botones alineados -->
+        {% if page_obj.has_other_pages %}
+            <div class="flex items-center justify-between mt-4">
+                {% if page_obj.has_previous %}
+                    <a href="?page={{ page_obj.previous_page_number }}" class="px-4 py-2 bg-blue-500 rounded-lg text-white hover:bg-blue-700">
+                        ⬅️ Anterior
+                    </a>
+                {% else %}
+                    <span class="px-4 py-2 text-gray-500">⬅️ Anterior</span>
+                {% endif %}
+
+                <span class="text-gray-300 text-lg font-semibold">
+                    Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}
+                </span>
+
+                {% if page_obj.has_next %}
+                    <a href="?page={{ page_obj.next_page_number }}" class="px-4 py-2 bg-blue-500 rounded-lg text-white hover:bg-blue-700">
+                        Siguiente ➡️
+                    </a>
+                {% else %}
+                    <span class="px-4 py-2 text-gray-500">Siguiente ➡️</span>
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Script Mejorado -->
+    <script>
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                showNotification("success", "¡URL copiada!");
+            });
+        }
+
+        function confirmDeleteUrl(urlId) {
+            let confirmBox = document.createElement("div");
+            confirmBox.innerHTML = `
+                <div class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+                    <div class="bg-gray-800 p-6 rounded-lg shadow-lg text-center">
+                        <p class="text-white mb-4">¿Estás seguro de que deseas eliminar esta URL?</p>
+                        <button onclick="deleteUrl(${urlId})" class="px-4 py-2 bg-red-500 rounded-lg text-white hover:bg-red-700">
+                            Eliminar
+                        </button>
+                        <button onclick="this.parentElement.parentElement.remove()" class="ml-2 px-4 py-2 bg-gray-600 rounded-lg text-white hover:bg-gray-800">
+                            Cancelar
+                        </button>
+                    </div>
+                </div>`;
+            document.body.appendChild(confirmBox);
+        }
+
+        function deleteUrl(urlId) {
+            fetch(`/urls/delete/${urlId}/`, {
+                method: "DELETE",
+                headers: { "X-CSRFToken": "{{ csrf_token }}" }
+            })
+            .then(response => {
+                if (response.ok) {
+                    document.getElementById(`url-row-${urlId}`).remove();
+                    showNotification("success", "URL eliminada correctamente");
+                } else {
+                    showNotification("error", "No se pudo eliminar la URL");
+                }
+            });
+
+            document.querySelector(".fixed").remove(); // Cierra el modal de confirmación
+        }
+
+        function showNotification(type, message) {
+            let toast = document.createElement("div");
+            toast.innerHTML = message;
+            toast.classList.add("fixed", "bottom-4", "right-4", "p-3", "rounded-lg", "text-white", type === "success" ? "bg-green-500" : "bg-red-500");
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 2000);
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro de Usuario</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-900 flex items-center justify-center min-h-screen text-white">
+    <div class="w-full max-w-md bg-gray-800 p-8 rounded-lg shadow-md">
+        <h1 class="text-2xl font-bold mb-6 text-center">Registro de Nuevo Usuario</h1>
+        <form id="registersForm" class="space-y-4">
+            {% csrf_token %}
+            <div>
+                <label for="email" class="block text-sm font-medium">Correo Electrónico</label>
+                <input type="email" id="email" name="email" required
+                    class="w-full px-4 py-2 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            <div class="relative">
+                <label for="password" class="block text-sm font-medium">Contraseña</label>
+                <input type="password" id="password" name="password" required minlength="6"
+                    class="w-full px-4 py-2 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <button type="button" onclick="togglePassword()" 
+                    class="absolute inset-y-0 right-0 flex items-center px-3 text-gray-400 hover:text-white">
+                    👁️
+                </button>
+            </div>
+            <button type="submit"
+                class="w-full py-2 bg-blue-600 hover:bg-blue-700 rounded-lg font-bold text-white">
+                Registrar Usuario
+            </button>
+        </form>
+        <p id="errorMessage" class="mt-4 text-red-500 hidden"></p>
+    </div>
+
+    <script>
+        document.getElementById('registersForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value.trim();
+            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value;
+
+            if (!email.includes("@") || password.length < 6) {
+                showNotification("error", "Correo inválido o contraseña demasiado corta.");
+                return;
+            }
+
+            try {
+                const response = await fetch('/auth/registers/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrfToken
+                    },
+                    body: JSON.stringify({ email, password }),
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || "Error en el registro.");
+                }
+
+                showNotification("success", "¡Usuario registrado con éxito!");
+                setTimeout(() => window.location.href = '/dashboard/admin/', 2000);
+
+            } catch (error) {
+                showNotification("error", error.message);
+            }
+        });
+
+        function togglePassword() {
+            const passwordField = document.getElementById('password');
+            passwordField.type = passwordField.type === 'password' ? 'text' : 'password';
+        }
+
+        function showNotification(type, message) {
+            let toast = document.createElement("div");
+            toast.innerHTML = message;
+            toast.classList.add("fixed", "bottom-4", "right-4", "p-3", "rounded-lg", "text-white", "shadow-lg");
+            toast.classList.add(type === "success" ? "bg-green-500" : "bg-red-500");
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+    </script>
+</body>
+</html>
