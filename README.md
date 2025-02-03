@@ -3,6 +3,8 @@ Para evitar conflictos entre paquetes, se recomienda activar un entorno virtual 
 En Windows: venv\Scripts\activate
 En Mac/Linux: source venv/bin/activate
 
+Instalar dependencias pip install -r requirements.txt
+
 Para poner en marcha el servidor, simplemente ejecuta el siguiente comando en la terminal:
 python manage.py runserver
 
@@ -34,7 +36,7 @@ Contraseña: pedro1234
 
 superusuario:
 Usuario: admin@gmail.com
-Contraseña: admin1234
+Contraseña: root1234
 
 Al iniciar sesión, recibirás un token JWT, el cual deberás incluir en cada petición autenticada bajo el encabezado:
 
